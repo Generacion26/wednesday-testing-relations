@@ -1,5 +1,8 @@
 const request = require("supertest")
 const app = require("../app")
+const Student = require("../models/Student")
+
+require("../models")
 
 const course = {
   name: "programacion",
@@ -22,9 +25,13 @@ test("POST -> '/api/v1/courses', should return status code 201 and res.body.firs
 test("Get -> '/api/v1/courses', should return status code 200, and res.body.length === 1", async () => {
   const res = await request(app)
     .get('/api/v1/courses')
+
   expect(res.status).toBe(200)
   expect(res.body).toBeDefined()
   expect(res.body).toHaveLength(1)
+
+  expect(res.body[0].students).toBeDefined()
+  expect(res.body[0].students).toHaveLength(0)
 })
 
 test("Get -> '/api/v1/courses/:id', should return status code 200, and res.body.name === course.name", async () => {
@@ -49,6 +56,29 @@ test("PUT -> '/api/v1/courses/:id', should return status code 200, and res.body.
   expect(res.body.name).toBe(courseUpdate.name)
 })
 
+test("POST -> '/api/v1/courses/:id/students', sholud return status code 200 and res.body.length === 1", async () => {
+
+  const student = {
+    firstName: "Jalmar",
+    lastName: "Villareal",
+    birthday: "2020-09-12",
+    program: "ingenieria"
+  }
+
+  const createStudent = await Student.create(student)
+
+  const res = await request(app)
+    .post(`/api/v1/courses/${courseId}/students`)
+    .send([createStudent.id])
+
+  expect(res.status).toBe(200)
+  expect(res.body).toHaveLength(1)
+
+  await createStudent.destroy()
+
+
+})
+
 test("Delete -> '/api/v1/courses/:id', should return status code 204", async () => {
 
   const res = await request(app)
@@ -56,3 +86,7 @@ test("Delete -> '/api/v1/courses/:id', should return status code 204", async () 
 
   expect(res.status).toBe(204)
 })
+
+
+
+
